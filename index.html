@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>New Year Countdown</title>
+  <style>
+    :root{
+      /* Pastel gradient palette */
+      --p1:#f7d9ff; /* pink-lilac */
+      --p2:#d7f0ff; /* baby blue */
+      --p3:#e6ffe8; /* mint */
+      --ink:#121212;
+      --muted:rgba(18,18,18,.55);
+
+      /* Glass card */
+      --glass: rgba(255,255,255,.55);
+      --stroke: rgba(255,255,255,.70);
+      --shadow: 0 20px 70px rgba(0,0,0,.12);
+
+      --radius: 28px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+              "Apple SD Gothic Neo","Noto Sans KR","Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{ box-sizing:border-box; }
+    html, body { height:100%; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--ink);
+      overflow:hidden;
+
+      /* luxury-ish pastel gradients */
+      background:
+        radial-gradient(1100px 700px at 15% 20%, var(--p1), transparent 60%),
+        radial-gradient(1000px 650px at 80% 30%, var(--p2), transparent 60%),
+        radial-gradient(900px 600px at 55% 85%, var(--p3), transparent 60%),
+        linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,255,255,.35));
+    }
+
+    /* subtle noise overlay (no external file) */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+      pointer-events:none;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding:32px 18px;
+      position:relative;
+    }
+
+    .card{
+      width:min(980px, 96vw);
+      border-radius: var(--radius);
+      background: var(--glass);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      padding: clamp(22px, 3.6vw, 46px);
+    }
+
+    .top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 26px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.58);
+      border: 1px solid rgba(255,255,255,.75);
+      font-size: 13px;
+      letter-spacing:.2px;
+      color: var(--muted);
+    }
+
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: linear-gradient(135deg, #ffb7d5, #b7f1ff);
+      box-shadow: 0 0 0 6px rgba(255,255,255,.35);
+    }
+
+    h1{
+      margin: 10px 0 0 0;
+      font-weight: 650;
+      letter-spacing: -0.7px;
+      font-size: clamp(26px, 4.2vw, 42px);
+      line-height: 1.05;
+    }
+
+    .sub{
+      margin: 10px 0 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height:1.6;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.75);
+      background: rgba(255,255,255,.66);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-size: 13px;
+      color: rgba(18,18,18,.85);
+      transition: transform .15s ease, background .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.78); }
+    .btn:active{ transform: translateY(0px); }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .tile{
+      border-radius: 22px;
+      padding: 18px 16px 14px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(255,255,255,.78);
+      position:relative;
+      overflow:hidden;
+      min-height: 104px;
+    }
+
+    .tile::after{
+      content:"";
+      position:absolute; inset:-40% -60%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.92), transparent 40%),
+        radial-gradient(circle at 70% 50%, rgba(255,255,255,.62), transparent 45%);
+      transform: rotate(12deg);
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    .label{
+      position:relative;
+      color: rgba(18,18,18,.55);
+      font-size: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .value{
+      position:relative;
+      margin-top: 10px;
+      font-family: var(--mono);
+      font-size: clamp(22px, 3.2vw, 34px);
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255,255,255,.72);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* small toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%) translateY(20px);
+      opacity:0;
+      pointer-events:none;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(255,255,255,.85);
+      box-shadow: 0 14px 40px rgba(0,0,0,.10);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: opacity .18s ease, transform .18s ease;
+      font-size: 13px;
+      color: rgba(18,18,18,.82);
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(0px);
+    }
+
+    @media (max-width: 820px){
+      .grid{ grid-template-columns: repeat(2, 1fr); }
+      .grid .tile:last-child{ grid-column: span 2; }
+      .top{ flex-direction:column; }
+      .actions{ justify-content:flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <main class="card">
+      <div class="top">
+        <div>
+          <div class="badge"><span class="dot"></span><span id="status">KST 기준 카운트다운</span></div>
+          <h1>🎉 새해까지 남은 시간</h1>
+          <p class="sub">
+            목표 시각: <span id="targetText"></span><br/>
+            (서버는 쉬고, 브라우저가 열일하는 구조 — 성능/확장성 모두 이김)
+          </p>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="copyBtn">공유용 텍스트 복사</button>
+          <button class="btn" id="toggleBtn">밀리초 OFF</button>
+        </div>
+      </div>
+
+      <section class="grid" aria-label="Countdown">
+        <div class="tile"><div class="label">Days</div><div class="value" id="days">—</div></div>
+        <div class="tile"><div class="label">Hours</div><div class="value" id="hours">—</div></div>
+        <div class="tile"><div class="label">Minutes</div><div class="value" id="minutes">—</div></div>
+        <div class="tile"><div class="label">Seconds</div><div class="value" id="seconds">—</div></div>
+        <div class="tile" id="msTile"><div class="label">Milliseconds</div><div class="value" id="ms">—</div></div>
+      </section>
+
+      <div class="footer">
+        <div>© <span id="yearNow"></span> Pastel Minimal Countdown</div>
+        <div id="nowText"></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast">복사 완료</div>
+
+  <script>
+    // Target: 2026-01-01 00:00:00 KST
+    // JS Date는 내부적으로 UTC 기반이므로, ISO에 +09:00을 붙여 명확히 지정
+    const target = new Date("2026-01-01T00:00:00+09:00");
+
+    const el = (id) => document.getElementById(id);
+    const pad2 = (n) => String(n).padStart(2, "0");
+    const pad3 = (n) => String(n).padStart(3, "0");
+
+    // KST 표기 텍스트 생성 (브라우저 로컬 TZ가 달라도 KST로 보이게)
+    function formatKST(d){
+      const localOffsetMs = d.getTimezoneOffset() * 60 * 1000; // local -> UTC
+      const kstMs = d.getTime() + (9 * 60 * 60 * 1000) + localOffsetMs; // UTC -> KST (hack)
+      const k = new Date(kstMs);
+      return `${k.getFullYear()}-${pad2(k.getMonth()+1)}-${pad2(k.getDate())} ${pad2(k.getHours())}:${pad2(k.getMinutes())}:${pad2(k.getSeconds())} (KST)`;
+    }
+
+    el("targetText").textContent = formatKST(target);
+    el("yearNow").textContent = new Date().getFullYear();
+
+    let showMs = true;
+    function setMsVisible(on){
+      showMs = on;
+      el("msTile").style.display = on ? "" : "none";
+      el("toggleBtn").textContent = on ? "밀리초 OFF" : "밀리초 ON";
+    }
+
+    function showToast(msg){
+      const t = el("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(()=>t.classList.remove("show"), 1100);
+    }
+
+    function tick(){
+      const now = new Date();
+      const diff = target.getTime() - now.getTime();
+
+      el("nowText").textContent = `현재: ${formatKST(now)}`;
+
+      if (diff <= 0){
+        el("status").textContent = "새해 도착 ✅";
+        el("days").textContent = "0";
+        el("hours").textContent = "00";
+        el("minutes").textContent = "00";
+        el("seconds").textContent = "00";
+        el("ms").textContent = "000";
+        return; // stop
+      }
+
+      const totalMs = diff;
+      const totalSec = Math.floor(totalMs / 1000);
+
+      const days = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const minutes = Math.floor((totalSec % 3600) / 60);
+      const seconds = totalSec % 60;
+      const ms = totalMs % 1000;
+
+      el("days").textContent = String(days);
+      el("hours").textContent = pad2(hours);
+      el("minutes").textContent = pad2(minutes);
+      el("seconds").textContent = pad2(seconds);
+      if (showMs) el("ms").textContent = pad3(ms);
+
+      // ms 켜져 있으면 requestAnimationFrame으로 부드럽게,
+      // 꺼져 있으면 250ms 간격 setTimeout으로 CPU 아끼기
+      if (showMs) {
+        requestAnimationFrame(tick);
+      } else {
+        setTimeout(tick, 250);
+      }
+    }
+
+    // Copy button
+    el("copyBtn").addEventListener("click", async () => {
+      const text = `🎉 새해까지 남은 시간: ${el("days").textContent}일 ${el("hours").textContent}시간 ${el("minutes").textContent}분 ${el("seconds").textContent}${showMs ? "." + el("ms").textContent : ""}초 (KST)`;
+      try{
+        await navigator.clipboard.writeText(text);
+        showToast("복사 완료 ✨");
+      }catch(e){
+        // 일부 환경에서 clipboard가 막힌 경우 대비
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        showToast("복사 완료(대체 방식) ✨");
+      }
+    });
+
+    // Toggle ms
+    el("toggleBtn").addEventListener("click", () => {
+      setMsVisible(!showMs);
+      showToast(showMs ? "밀리초 ON" : "밀리초 OFF");
+      tick();
+    });
+
+    // init
+    setMsVisible(true);
+    tick();
+  </script>
+</body>
+</html>
